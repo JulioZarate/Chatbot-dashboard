@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Andrea · Dashboard de inversión en bolsa</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#ffffff; --ink:#18212f; --muted:#5b6676; --line:#e3e7ee;
+    --accent:#0f6e5a; --accent2:#2a5bd7; --warn:#b4541a; --soft:#e8f3ef;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+  header{background:#10261f;color:#fff;padding:28px 24px}
+  header .wrap{max-width:1150px;margin:0 auto}
+  header h1{margin:0 0 6px;font-size:1.7rem}
+  header p{margin:0;color:#c9dbd4;max-width:760px}
+  nav{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+  nav .wrap{max-width:1150px;margin:0 auto;display:flex;gap:4px;overflow-x:auto;padding:0 16px}
+  nav a{padding:12px 12px;color:var(--muted);text-decoration:none;font-size:.92rem;white-space:nowrap;border-bottom:2px solid transparent}
+  nav a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+  main{max-width:1150px;margin:0 auto;padding:22px 16px 120px}
+  section{margin-bottom:26px}
+  h2{font-size:1.25rem;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 14px;font-size:.95rem}
+  .grid{display:grid;gap:14px}
+  .g4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .kpi .lab{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .kpi .val{font-size:1.5rem;font-weight:700;margin:4px 0}
+  .kpi .note{font-size:.85rem;color:var(--muted)}
+  label{display:block;font-size:.85rem;color:var(--muted);margin:10px 0 4px}
+  input[type=number]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:1rem}
+  input[type=range]{width:100%}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.8rem;font-weight:600;background:var(--soft);color:var(--accent)}
+  .legend{display:flex;gap:16px;font-size:.85rem;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+  .sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+  .bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+  .bar>span{display:block;height:100%}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;cursor:pointer;font-size:.88rem}
+  .chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .term{border-bottom:1px solid var(--line);padding:10px 0}
+  .term b{display:block}
+  details{border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:8px;background:#fff}
+  summary{cursor:pointer;font-weight:600}
+  ol.steps{padding-left:20px;margin:0}
+  ol.steps li{margin-bottom:8px}
+  .disclaimer{font-size:.85rem;color:var(--warn);background:#fdf3ec;border:1px solid #f3d6c2;border-radius:10px;padding:10px 14px}
+  .voice{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  footer{text-align:center;color:var(--muted);font-size:.85rem;padding:20px}
+
+  /* Chatbot */
+  #botBtn{position:fixed;left:20px;bottom:20px;z-index:50;background:var(--accent2);color:#fff;border:none;border-radius:999px;padding:12px 18px;font-size:.95rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+  #bot{position:fixed;left:20px;bottom:76px;width:360px;max-width:calc(100vw - 40px);height:470px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.2);display:none;flex-direction:column;z-index:50;overflow:hidden}
+  #bot.open{display:flex}
+  #bot .hd{background:var(--accent2);color:#fff;padding:12px 14px}
+  #bot .hd b{display:block}
+  #bot .hd small{opacity:.85}
+  #log{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#fafbfc}
+  .msg{max-width:88%;padding:8px 11px;border-radius:12px;font-size:.9rem}
+  .msg.u{align-self:flex-end;background:var(--accent2);color:#fff}
+  .msg.b{align-self:flex-start;background:#fff;border:1px solid var(--line)}
+  .msg.b .src{display:block;font-size:.75rem;color:var(--muted);margin-top:4px}
+  #botForm{display:flex;border-top:1px solid var(--line)}
+  #botIn{flex:1;border:none;padding:12px;font-size:.95rem;outline:none}
+  #botForm button{border:none;background:none;color:var(--accent2);font-weight:700;padding:0 14px;cursor:pointer}
+  .sugg{display:flex;gap:6px;flex-wrap:wrap;padding:0 12px 8px;background:#fafbfc}
+  .sugg button{font-size:.75rem;border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 9px;cursor:pointer}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>Andrea · Dashboard de inversión en bolsa</h1>
+    <p>Guía interactiva para entender cómo funciona invertir en la bolsa desde México: interés compuesto, riesgo y rendimiento, diversificación y primeros pasos. Platica con Andrea por voz o pregúntale al chatbot del dashboard.</p>
+  </div>
+</header>
+
+<nav><div class="wrap">
+  <a href="#conceptos">Conceptos clave</a>
+  <a href="#calculadora">Interés compuesto</a>
+  <a href="#riesgo">Riesgo vs rendimiento</a>
+  <a href="#portafolio">Simulador de portafolio</a>
+  <a href="#pasos">Cómo empezar</a>
+  <a href="#glosario">Glosario</a>
+  <a href="#faq">Preguntas frecuentes</a>
+  <a href="#mayela">Habla con Andrea</a>
+</div></nav>
+
+<main>
+
+<section id="conceptos">
+  <h2>Conceptos clave</h2>
+  <p class="sub">Cuatro ideas que conviene tener claras antes de invertir.</p>
+  <div class="grid g4">
+    <div class="card kpi"><div class="lab">Acción</div><div class="val">Parte de una empresa</div><div class="note">Comprar una acción te hace dueño de una fracción de la empresa. Ganas si sube el precio o si reparte dividendos.</div></div>
+    <div class="card kpi"><div class="lab">ETF</div><div class="val">Canasta de activos</div><div class="note">Un ETF cotiza como una acción pero replica un índice o un grupo de activos, lo que diversifica con una sola compra.</div></div>
+    <div class="card kpi"><div class="lab">Horizonte</div><div class="val">Tiempo invertido</div><div class="note">Entre más largo el horizonte, más tiempo hay para recuperarse de las caídas y para que actúe el interés compuesto.</div></div>
+    <div class="card kpi"><div class="lab">Riesgo</div><div class="val">Variación del precio</div><div class="note">Mayor rendimiento esperado suele venir con mayor volatilidad. No existe rendimiento alto garantizado.</div></div>
+  </div>
+</section>
+
+<section id="calculadora">
+  <h2>Calculadora de interés compuesto</h2>
+  <p class="sub">Mueve los supuestos y observa cuánto viene de tus aportaciones y cuánto del rendimiento. La tasa es un supuesto tuyo, no una promesa del mercado.</p>
+  <div class="grid g2">
+    <div class="card">
+      <label for="cIni">Monto inicial (MXN)</label>
+      <input id="cIni" type="number" value="10000" min="0" step="1000">
+      <label for="cMes">Aportación mensual (MXN)</label>
+      <input id="cMes" type="number" value="1000" min="0" step="100">
+      <label for="cTasa">Rendimiento anual supuesto: <b id="cTasaV">8%</b></label>
+      <input id="cTasa" type="range" min="0" max="15" step="0.5" value="8">
+      <label for="cAnios">Años: <b id="cAniosV">15</b></label>
+      <input id="cAnios" type="range" min="1" max="40" step="1" value="15">
+      <div class="grid g4" style="margin-top:14px;grid-template-columns:repeat(3,1fr)">
+        <div class="kpi"><div class="lab">Aportado</div><div class="val" id="oApor" style="font-size:1.15rem">–</div></div>
+        <div class="kpi"><div class="lab">Rendimiento</div><div class="val" id="oRend" style="font-size:1.15rem;color:var(--accent)">–</div></div>
+        <div class="kpi"><div class="lab">Valor final</div><div class="val" id="oFin" style="font-size:1.15rem">–</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <svg id="chart" viewBox="0 0 520 300" width="100%" role="img" aria-label="Crecimiento de la inversión por año"></svg>
+      <div class="legend">
+        <span><i class="sw" style="background:#9fb3c8"></i>Aportaciones acumuladas</span>
+        <span><i class="sw" style="background:var(--accent)"></i>Valor con rendimiento</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="riesgo">
+  <h2>Riesgo vs rendimiento esperado</h2>
+  <p class="sub">Comparación cualitativa (escala 1 a 5) entre tipos de instrumento. Es una referencia educativa, no una medición de mercado.</p>
+  <div class="card">
+    <div class="chips" id="riskChips">
+      <button class="chip on" data-k="todos">Todos</button>
+      <button class="chip" data-k="fija">Renta fija</button>
+      <button class="chip" data-k="variable">Renta variable</button>
+    </div>
+    <table>
+      <thead><tr><th>Instrumento</th><th style="width:22%">Riesgo</th><th style="width:22%">Rendimiento esperado</th><th>Para qué sirve</th></tr></thead>
+      <tbody id="riskBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="portafolio">
+  <h2>Simulador de portafolio</h2>
+  <p class="sub">Reparte el 100% entre tres bloques y mira qué perfil de inversionista se parece a tu mezcla.</p>
+  <div class="grid g2">
+    <div class="card">
+      <label>Renta fija (CETES, bonos): <b id="pFV">50%</b></label>
+      <input id="pF" type="range" min="0" max="100" value="50">
+      <label>Renta variable México (acciones, ETF del IPC): <b id="pMV">25%</b></label>
+      <input id="pM" type="range" min="0" max="100" value="25">
+      <label>Renta variable global (ETF internacionales): <b id="pGV">25%</b></label>
+      <div class="bar" style="height:14px"><span id="pGBar" style="width:25%;background:var(--accent2)"></span></div>
+      <p class="sub" style="margin-top:8px">El bloque global se ajusta solo para que la suma sea 100%.</p>
+    </div>
+    <div class="card">
+      <div class="row"><b>Perfil resultante</b><span class="pill" id="pPerfil">Moderado</span></div>
+      <label>Índice de riesgo del portafolio (1 a 5)</label>
+      <div class="bar" style="height:14px"><span id="pRiskBar" style="width:50%;background:var(--warn)"></span></div>
+      <p id="pTxt" style="margin-top:12px"></p>
+    </div>
+  </div>
+</section>
+
+<section id="pasos">
+  <h2>Cómo empezar a invertir en bolsa desde México</h2>
+  <p class="sub">Ruta general para un inversionista principiante.</p>
+  <div class="grid g2">
+    <div class="card">
+      <ol class="steps">
+        <li><b>Define tu objetivo y horizonte.</b> No es lo mismo ahorrar para un viaje en un año que para el retiro en 30.</li>
+        <li><b>Arma un fondo de emergencia primero.</b> Dinero líquido para imprevistos, para no vender inversiones en mal momento.</li>
+        <li data-k="casa bolsa plataforma elegir regulada cnbv"><b>Elige una casa de bolsa o plataforma regulada.</b> Verifica que esté supervisada por la CNBV.</li>
+        <li data-k="abrir cuenta requisitos documentos necesito contrato"><b>Abre tu contrato.</b> Normalmente pide identificación oficial, comprobante de domicilio, RFC/CURP y un cuestionario de perfil de inversionista.</li>
+        <li data-k="comision costo cobran"><b>Revisa comisiones.</b> Comisión por operación, custodia y el IVA sobre ellas reducen tu rendimiento.</li>
+        <li><b>Empieza diversificado.</b> Un ETF amplio suele ser más sencillo que elegir acciones individuales.</li>
+        <li><b>Invierte de forma constante.</b> Aportar cada mes reduce el efecto de comprar todo en un mal momento.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <b>Mercados en México</b>
+      <p>En México operan dos bolsas de valores: la <b>BMV</b> (Bolsa Mexicana de Valores) y <b>BIVA</b> (Bolsa Institucional de Valores). El índice principal de la BMV es el <b>S&amp;P/BMV IPC</b>, que agrupa a las emisoras más grandes y líquidas.</p>
+      <p>A través del <b>SIC</b> (Sistema Internacional de Cotizaciones) se pueden comprar desde México acciones y ETF extranjeros, por ejemplo los que replican al S&amp;P 500.</p>
+      <p><b>CETES</b> son bonos del Gobierno Federal a corto plazo; se consideran de los instrumentos de menor riesgo en pesos.</p>
+      <div class="disclaimer">Este dashboard es educativo y no constituye asesoría de inversión. Revisa el tratamiento fiscal y los riesgos con tu casa de bolsa o un asesor certificado.</div>
+    </div>
+  </div>
+</section>
+
+<section id="glosario">
+  <h2>Glosario</h2>
+  <p class="sub">Busca un término.</p>
+  <div class="card">
+    <input id="gq" type="text" placeholder="Ej. dividendo, volatilidad..." style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:1rem">
+    <div id="glist"></div>
+  </div>
+</section>
+
+<section id="faq">
+  <h2>Preguntas frecuentes</h2>
+  <div id="faqList"></div>
+</section>
+
+<section id="mayela">
+  <h2>Habla con Andrea</h2>
+  <p class="sub">Andrea es un agente de voz creado en ElevenLabs con una base de conocimiento (RAG) sobre inversión en bolsa. Haz clic en el botón de llamada en la esquina inferior derecha.</p>
+  <div class="card voice">
+    <div>
+      <b>Ideas para preguntarle:</b>
+      <ul style="margin:6px 0 0">
+        <li>¿Qué diferencia hay entre una acción y un ETF?</li>
+        <li>¿Qué necesito para abrir una cuenta en una casa de bolsa?</li>
+        <li>¿Qué es la diversificación?</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>Dashboard educativo · Agente de voz Andrea (ElevenLabs) · Contenido sin fines de asesoría financiera</footer>
+
+<!-- ===== Chatbot restringido al contenido del dashboard ===== -->
+<button id="botBtn" aria-controls="bot">💬 Pregúntale al dashboard</button>
+<div id="bot" role="dialog" aria-label="Chatbot del dashboard">
+  <div class="hd"><b>Asistente del dashboard</b><small>Solo responde con la información de esta página</small></div>
+  <div id="log"></div>
+  <div class="sugg" id="sugg"></div>
+  <form id="botForm"><input id="botIn" placeholder="Escribe tu pregunta..." autocomplete="off"><button>Enviar</button></form>
+</div>
+
+<!-- ===== Widget de voz ElevenLabs (reemplaza el agent-id por el de tu agente) ===== -->
+<elevenlabs-convai agent-id="agent_8301m5nkww06eg0sxdv6g6077epm"></elevenlabs-convai>
+<script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
+
+<script>
+/* ---------- Datos del dashboard (fuente única para la página y el chatbot) ---------- */
+const RIESGO = [
+  {n:"CETES", t:"fija", r:1, e:1, uso:"Guardar dinero en pesos con muy bajo riesgo y plazos cortos (por ejemplo 28 días)."},
+  {n:"Bonos gubernamentales de largo plazo", t:"fija", r:2, e:2, uso:"Tasa fija por más tiempo; su precio se mueve si cambian las tasas de interés."},
+  {n:"Bonos corporativos", t:"fija", r:2.5, e:2.5, uso:"Pagan más que los gubernamentales a cambio del riesgo de que la empresa no pague."},
+  {n:"ETF de índice amplio", t:"variable", r:3, e:3.5, uso:"Exposición diversificada a muchas empresas con una sola compra; base común para el largo plazo."},
+  {n:"Acciones individuales grandes", t:"variable", r:4, e:3.5, uso:"Apostar por empresas concretas; más riesgo porque depende de pocas emisoras."},
+  {n:"Acciones pequeñas o especulativas", t:"variable", r:5, e:4, uso:"Potencial alto con caídas fuertes; solo una parte pequeña del portafolio."}
+];
+const GLOSARIO = [
+  ["Acción","Título que representa una parte del capital de una empresa."],
+  ["Dividendo","Parte de las utilidades que una empresa reparte a sus accionistas."],
+  ["ETF","Fondo que cotiza en bolsa y replica un índice, sector o canasta de activos."],
+  ["Índice bursátil","Indicador que resume el comportamiento de un grupo de acciones, como el S&P/BMV IPC o el S&P 500."],
+  ["Volatilidad","Qué tanto sube y baja el precio de un activo en un periodo."],
+  ["Diversificación","Repartir la inversión en distintos activos para que una sola caída no afecte todo el portafolio."],
+  ["Liquidez","Facilidad para convertir una inversión en efectivo sin perder valor."],
+  ["Casa de bolsa","Intermediario autorizado que te permite comprar y vender valores."],
+  ["CETES","Certificados de la Tesorería de la Federación: deuda del gobierno mexicano a corto plazo."],
+  ["Interés compuesto","Ganar rendimiento sobre el rendimiento ya generado, además del capital inicial."],
+  ["Horizonte de inversión","Tiempo que planeas mantener tu inversión antes de usar el dinero."],
+  ["Perfil de inversionista","Clasificación (conservador, moderado, agresivo) según tu tolerancia al riesgo y objetivos."],
+  ["Comisión","Cobro de la casa de bolsa por operar o custodiar tus valores."],
+  ["SIC","Sistema Internacional de Cotizaciones: permite comprar en México valores listados en el extranjero."],
+  ["Renta fija","Instrumentos de deuda con pagos conocidos o pactados, como CETES y bonos."],
+  ["Renta variable","Instrumentos cuyo rendimiento no está garantizado, como acciones y ETF de acciones."]
+];
+const FAQ = [
+  ["¿Cuánto dinero necesito para empezar?","Muchas plataformas permiten empezar con montos bajos. Lo importante es invertir dinero que no necesitas en el corto plazo y tener antes un fondo de emergencia."],
+  ["¿Es mejor una acción o un ETF para empezar?","Para un principiante un ETF de índice amplio suele ser más sencillo porque ya está diversificado. Una acción individual depende de una sola empresa y es más riesgosa."],
+  ["¿Puedo perder dinero en la bolsa?","Sí. El precio de las acciones y ETF puede bajar y no hay rendimiento garantizado. Diversificar y tener un horizonte largo ayuda a manejar ese riesgo, pero no lo elimina."],
+  ["¿Qué es más seguro, CETES o acciones?","Los CETES tienen menor riesgo porque son deuda del gobierno a corto plazo. Las acciones tienen mayor riesgo y también mayor rendimiento esperado a largo plazo."],
+  ["¿Cada cuánto debo revisar mi portafolio?","Una revisión periódica, por ejemplo cada seis o doce meses, para rebalancear si la mezcla se alejó de tu perfil, suele ser suficiente. Revisarlo a diario puede llevar a decisiones impulsivas."],
+  ["¿Qué es rebalancear?","Regresar el portafolio a la mezcla objetivo vendiendo un poco de lo que creció de más y comprando de lo que quedó por debajo."]
+];
+
+/* ---------- Utilidades ---------- */
+const $ = id => document.getElementById(id);
+const mxn = v => v.toLocaleString("es-MX",{style:"currency",currency:"MXN",maximumFractionDigits:0});
+
+/* ---------- Calculadora ---------- */
+function calc(){
+  const ini=+$("cIni").value||0, mes=+$("cMes").value||0, tasa=+$("cTasa").value, an=+$("cAnios").value;
+  $("cTasaV").textContent=tasa+"%"; $("cAniosV").textContent=an;
+  const rm=Math.pow(1+tasa/100,1/12)-1; let v=ini, ap=ini; const pts=[{y:0,v:ini,ap:ini}];
+  for(let m=1;m<=an*12;m++){ v=v*(1+rm)+mes; ap+=mes; if(m%12===0) pts.push({y:m/12,v,ap}); }
+  $("oApor").textContent=mxn(ap); $("oRend").textContent=mxn(v-ap); $("oFin").textContent=mxn(v);
+  draw(pts);
+}
+function draw(pts){
+  const W=520,H=300,L=64,R=12,T=14,B=34, svg=$("chart");
+  const max=Math.max(...pts.map(p=>p.v))*1.05||1, n=pts.length-1||1;
+  const x=i=>L+(W-L-R)*i/n, y=v=>T+(H-T-B)*(1-v/max);
+  let s="";
+  for(let k=0;k<=4;k++){ const val=max*k/4, yy=y(val);
+    s+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="#e3e7ee"/>`;
+    s+=`<text x="${L-6}" y="${yy+4}" font-size="11" fill="#5b6676" text-anchor="end">${val>=1e6?(val/1e6).toFixed(1)+"M":Math.round(val/1e3)+"k"}</text>`; }
+  const step=Math.ceil(n/8);
+  pts.forEach((p,i)=>{ if(i%step===0||i===n) s+=`<text x="${x(i)}" y="${H-12}" font-size="11" fill="#5b6676" text-anchor="middle">${p.y}</text>`; });
+  s+=`<text x="${(W+L)/2}" y="${H}" font-size="11" fill="#5b6676" text-anchor="middle">Años</text>`;
+  const area=pts.map((p,i)=>`${x(i)},${y(p.v)}`).join(" ");
+  s+=`<polygon points="${x(0)},${y(0)} ${area} ${x(n)},${y(0)}" fill="#0f6e5a" opacity=".12"/>`;
+  s+=`<polyline points="${pts.map((p,i)=>`${x(i)},${y(p.ap)}`).join(" ")}" fill="none" stroke="#9fb3c8" stroke-width="2.5" stroke-dasharray="5 4"/>`;
+  s+=`<polyline points="${area}" fill="none" stroke="#0f6e5a" stroke-width="3"/>`;
+  pts.forEach((p,i)=>{ s+=`<circle cx="${x(i)}" cy="${y(p.v)}" r="9" fill="transparent"><title>Año ${p.y}: ${mxn(p.v)} (aportado ${mxn(p.ap)})</title></circle>`; });
+  svg.innerHTML=s;
+}
+["cIni","cMes","cTasa","cAnios"].forEach(id=>$(id).addEventListener("input",calc));
+
+/* ---------- Tabla de riesgo ---------- */
+function bar(v,c){return `<div class="bar"><span style="width:${v/5*100}%;background:${c}"></span></div><small>${v} / 5</small>`;}
+function riesgo(k){
+  $("riskBody").innerHTML=RIESGO.filter(r=>k==="todos"||r.t===k).map(r=>
+    `<tr><td><b>${r.n}</b><br><small>${r.t==="fija"?"Renta fija":"Renta variable"}</small></td><td>${bar(r.r,"#b4541a")}</td><td>${bar(r.e,"#0f6e5a")}</td><td>${r.uso}</td></tr>`).join("");
+}
+document.querySelectorAll("#riskChips .chip").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("#riskChips .chip").forEach(x=>x.classList.remove("on")); b.classList.add("on"); riesgo(b.dataset.k);
+});
+
+/* ---------- Simulador de portafolio ---------- */
+function port(src){
+  let f=+$("pF").value, m=+$("pM").value;
+  if(f+m>100){ if(src==="pF") m=100-f; else f=100-m; $("pF").value=f; $("pM").value=m; }
+  const g=100-f-m;
+  $("pFV").textContent=f+"%"; $("pMV").textContent=m+"%"; $("pGV").textContent=g+"%"; $("pGBar").style.width=g+"%";
+  const idx=(f*1.5+m*4+g*3.5)/100; $("pRiskBar").style.width=(idx/5*100)+"%";
+  const varPct=m+g; let perfil, txt;
+  if(varPct<=30){perfil="Conservador";txt="La mayor parte está en renta fija: menos sobresaltos, pero menor crecimiento esperado. Encaja con horizontes cortos o baja tolerancia a caídas.";}
+  else if(varPct<=65){perfil="Moderado";txt="Equilibra estabilidad de la renta fija con el crecimiento de la renta variable. Encaja con horizontes medios.";}
+  else {perfil="Agresivo";txt="Predomina la renta variable: mayor crecimiento esperado y caídas temporales más fuertes. Encaja con horizontes largos y alta tolerancia al riesgo.";}
+  $("pPerfil").textContent=perfil; $("pTxt").textContent=`Renta variable total: ${varPct}%. Índice de riesgo ≈ ${idx.toFixed(1)} de 5. ${txt}`;
+}
+$("pF").addEventListener("input",()=>port("pF")); $("pM").addEventListener("input",()=>port("pM"));
+
+/* ---------- Glosario y FAQ ---------- */
+function glos(q){
+  const nq=norm(q);
+  $("glist").innerHTML=GLOSARIO.filter(([t,d])=>!nq||norm(t+" "+d).includes(nq)).map(([t,d])=>`<div class="term"><b>${t}</b>${d}</div>`).join("")||"<p class='sub'>Sin resultados.</p>";
+}
+$("gq").addEventListener("input",e=>glos(e.target.value));
+$("faqList").innerHTML=FAQ.map(([q,a])=>`<details><summary>${q}</summary><p>${a}</p></details>`).join("");
+
+/* ---------- Chatbot: recuperación sobre el contenido del HTML ---------- */
+function norm(s){return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9ñ\s&]/g," ");}
+const STOP=new Set("que es la el los las un una unos unas de del y o a en para por con como cual cuales se mi me mis tu te lo al su sus mas menos hay entre sobre esto esta este son ser hacer debo puedo necesito quiero si no ya muy cuanto cuanta cada sea es mejor conviene".split(" "));
+function toks(s){return norm(s).split(/\s+/).filter(w=>w.length>2&&!STOP.has(w)).map(w=>w.replace(/(es|s)$/,""));}
+
+const KB=[];
+GLOSARIO.forEach(([t,d])=>KB.push({k:t+" "+t+" definicion significa",a:`${t}: ${d}`,src:"Glosario"}));
+FAQ.forEach(([q,a])=>KB.push({k:q,a,src:"Preguntas frecuentes"}));
+RIESGO.forEach(r=>KB.push({k:`${r.n} riesgo rendimiento ${r.t==="fija"?"renta fija":"renta variable"}`,a:`${r.n} (${r.t==="fija"?"renta fija":"renta variable"}): riesgo ${r.r}/5 y rendimiento esperado ${r.e}/5 en la escala educativa del dashboard. ${r.uso}`,src:"Riesgo vs rendimiento"}));
+document.querySelectorAll("#pasos ol.steps li").forEach(li=>KB.push({k:(li.dataset.k||"")+" "+li.textContent+" empezar invertir",a:li.textContent.trim(),src:"Cómo empezar"}));
+document.querySelectorAll("#pasos .card:nth-child(2) p").forEach(p=>KB.push({k:p.textContent,a:p.textContent.trim(),src:"Mercados en México"}));
+document.querySelectorAll("#conceptos .kpi").forEach(c=>KB.push({k:c.querySelector(".lab").textContent+" "+c.textContent,a:`${c.querySelector(".lab").textContent}: ${c.querySelector(".note").textContent}`,src:"Conceptos clave"}));
+KB.push({k:"perfil conservador moderado agresivo portafolio simulador mezcla",a:"Según el simulador del dashboard: hasta 30% en renta variable se considera Conservador, de 31% a 65% Moderado y más de 65% Agresivo. Puedes probar tu mezcla en la sección Simulador de portafolio.",src:"Simulador de portafolio"});
+KB.push({k:"calculadora interes compuesto cuanto tendre crecer ahorro aportacion mensual",a:"La calculadora de interés compuesto suma tu monto inicial y aportaciones mensuales y les aplica una tasa anual que tú eliges como supuesto. Ve a la sección Interés compuesto para ver el valor final y cuánto proviene del rendimiento.",src:"Calculadora"});
+KB.push({k:"mayela agente voz elevenlabs hablar llamar",a:"Andrea es el agente de voz del dashboard, creado en ElevenLabs con una base de conocimiento sobre inversión en bolsa. Usa el botón de llamada en la esquina inferior derecha.",src:"Habla con Andrea"});
+KB.push({k:"asesoria recomendacion comprar vender cual accion conviene impuesto fiscal",a:"Este dashboard es educativo y no da recomendaciones de compra o venta ni asesoría fiscal. Revisa esos temas con tu casa de bolsa o un asesor certificado.",src:"Aviso"});
+KB.forEach(e=>{e.t=new Set(toks(e.k+" "+e.a)); e.kt=new Set(toks(e.k));});
+const DF={}; KB.forEach(e=>e.t.forEach(w=>DF[w]=(DF[w]||0)+1));
+
+function answer(q){
+  const qt=toks(q); if(!qt.length) return null;
+  let best=null, score=0;
+  KB.forEach(e=>{ let s=0; qt.forEach(w=>{ if(e.t.has(w)) s+=Math.log(1+KB.length/DF[w])*(e.kt.has(w)?1.6:1); }); if(s>score){score=s;best=e;} });
+  return score>=2?best:null;
+}
+function add(txt,who,src){
+  const d=document.createElement("div"); d.className="msg "+who; d.textContent=txt;
+  if(src){const s=document.createElement("span");s.className="src";s.textContent="Fuente: "+src;d.appendChild(s);}
+  $("log").appendChild(d); $("log").scrollTop=$("log").scrollHeight;
+}
+function ask(q){
+  add(q,"u"); const r=answer(q);
+  if(r) add(r.a,"b",r.src);
+  else add("Solo puedo responder con la información de este dashboard y no encontré nada sobre eso. Prueba con temas como acciones, ETF, CETES, diversificación, riesgo o cómo abrir una cuenta.","b");
+}
+$("botBtn").onclick=()=>{ $("bot").classList.toggle("open"); if(!$("log").children.length) add("Hola. Respondo solo con lo que contiene este dashboard sobre inversión en bolsa. ¿Qué quieres saber?","b"); };
+$("botForm").onsubmit=e=>{e.preventDefault(); const q=$("botIn").value.trim(); if(q){ask(q); $("botIn").value="";}};
+["¿Qué es un ETF?","¿Puedo perder dinero?","¿Qué es el SIC?","¿Quién ganó el mundial?"].forEach(t=>{const b=document.createElement("button");b.type="button";b.textContent=t;b.onclick=()=>ask(t);$("sugg").appendChild(b);});
+
+/* ---------- Inicio ---------- */
+calc(); riesgo("todos"); port(); glos("");
+</script>
+</body>
+</html>
